@@ -1,0 +1,10 @@
+#!/bin/sh
+
+pdflatex hsn.tex
+pdflatex hsn.tex
+
+if [ "x$(uname)" == "xDarwin" ];then
+	open -a preview hsn.pdf
+elif which evince; then
+	evince hsn.pdf &
+fi
