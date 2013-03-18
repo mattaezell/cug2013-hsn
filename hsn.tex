@@ -43,11 +43,81 @@ what impact network problems have on user codes.
 HPC; Cray; Gemini; Interconnect; HSN; Titan
 \end{IEEEkeywords}
 
-\section{Introduction}
+\section{Introduction} 
+
+Hardware failures are inevitable on large high performance computing systems.
+Problems on a specific compute node can be fatal to an application running on
+that node, but these types of faults typically have little to no impact on
+other jobs or system services. Faults or performance degradations in the
+high-speed network, however, have the potential to reduce the entire system’s
+performance.
+
+Since the introduction of the Gemini System Interconnect, Cray high performance
+computing systems have become resilient to many types of high-speed networking
+faults. Hardware and software monitoring allow the network to transparently
+mask out bad lanes within a link, and to reroute around completely failed links
+by temporarily pausing network traffic while installing the new routes. These
+new network reliability and resiliency features have enabled higher uptimes on
+Cray systems by allowing them to continue running with reduced network
+performance.
+
+Oak Ridge National Laboratory has developed a set of user-level diagnostics
+that stresses the high-speed network and searches for components that are not
+performing as expected. Nearest-neighbor bandwidth tests check every network
+chip and network link in the system. Unidirectional single-threaded bandwidths
+approaching 7 GB/sec have been achieved across healthy links on a quiet system.
+Additionally, performance counters stored on the network ASIC’s memory mapped
+registers (MMRs) are used to get a more full picture of the state of the
+network. Applications have also been characterized under various suboptimal
+network conditions to better understand what impact network problems have on
+user codes.
 
 \section{The Cray Gemini Network}
 
+Cray XE and XK systems are highly scalable supercomputing platforms based on
+the Cray Gemini System Interconnect.  Gemini is a fault-tolerant network
+configured in a three dimensional torus.
+
+\subsection{Physical Layout}
+
+At the highest level, XE and XK systems are divided up into cabinets.  Cabinets
+are arranged ``left to right'' in rows, and larger systems will have multiple
+rows.  Cabinets in the same ``left to right'' position in different rows form
+columns.  Each cabinet consists of an L1 cabinet controller, a blower fan,
+power conversion electronics, and three chassis.  A chassis (also known as a
+cage) holds eight modules (also known as blades).  Modules contain a network
+mezzanine that houses two Gemini network chips; each Gemini is shared between
+two nodes.  The module printed circuit board layouts are different between
+service and compute modules because the service nodes support PCI Express
+interface cards.  Furthermore, XE and XK blades differ due to the absence or
+presence of a Graphics Processing Unit (GPU).
+
 \subsection{3D Torus Topology}
+
+In Gemini's three dimensional torus, each Gemini chip is directly connected to
+six of its nearest neighbors: positive and negative X, Y, and Z.  This maps
+extremely well to applications that do many nearest-neighbor exchanges, but the
+interconnect can be stressed by applications that do all-to-all type
+communications.
+
+In general, the X dimension goes along rows, the Y dimension goes along
+columns, and the Z dimension goes between the modules in a cabinet.  The
+specific cabling rules depend on the size and ``class'' of the system.  For
+large systems, X cables connect the 48 Gemini network chips in a cabinet to 48
+other Gemini network chips in an X+ cabinet in the same row and 48 other Gemini
+network chips in a X- cabinet in the same row.  The length of the X dimension
+is equal to the number of columns in a row.  The Y dimension connects the two
+Gemini chips that share a mezzanine, and those chips connect to other cabinets
+in the same column.  There are 24 Y+ and 24 Y- connections from each cabinet.
+The length of the Y dimension is twice the number of rows.  The Z dimension
+stays within a cabinet, connecting one Gemini from each module.  There are two
+Z-loops per cabinet each with length 24.
+
+Nodes that are close physically are not necessarily close topologically.  Cray
+uses a ``folded torus'' to minimize the maximum cable length.  For the X and Y
+dimensions, every other cabinet is directly connected together with
+``loopback'' cables at the ends to achieve a full torus.  In the Y dimension,
+the uppermost chassis connect to the lowermost chassis.
 
 \subsection{The Gemini Network Chip}
 ptiles, ntiles, lane, channel, link, mezzanine, chassis/cage
