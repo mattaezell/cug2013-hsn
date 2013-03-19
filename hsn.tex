@@ -92,6 +92,12 @@ service and compute modules because the service nodes support PCI Express
 interface cards.  Furthermore, XE and XK blades differ due to the absence or
 presence of a Graphics Processing Unit (GPU).
 
+\begin{figure}
+  \centering
+  \includegraphics[width=3.0in]{figures/cabinet_diagram.pdf}\\
+  \caption{Cabinet Diagram}\label{fig:cab}
+\end{figure}
+
 \subsection{3D Torus Topology}
 
 In Gemini's three dimensional torus, each Gemini chip is directly connected to
@@ -116,19 +122,46 @@ Z-loops per cabinet each with length 24.
 Nodes that are close physically are not necessarily close topologically.  Cray
 uses a ``folded torus'' to minimize the maximum cable length.  For the X and Y
 dimensions, every other cabinet is directly connected together with
-``loopback'' cables at the ends to achieve a full torus.  In the Y dimension,
-the uppermost chassis connect to the lowermost chassis.
+``loopback'' cables at the ends to achieve a full torus (see Figure
+\ref{fig:cabfold} for an example in the X dimension).  In the Y dimension, the
+uppermost chassis connect to the lowermost chassis.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=3.0in]{figures/cabinets_folded.pdf}\\
+  \caption{Example X Cabinet Connections}\label{fig:cabfold}
+\end{figure}
 
 \subsection{The Gemini Network Chip}
 ptiles, ntiles, lane, channel, link, mezzanine, chassis/cage
 
+\begin{figure}
+  \centering
+  \includegraphics[width=3.0in]{figures/gemini_tiles.pdf}\\
+  \caption{Gemini Tile Layout}\label{fig:tiles}
+\end{figure}
+
 \subsection{Fault Tolerence}
 lane degrades, link inactives, quiesce and reroute
 
-\subsection{Throttling}
+\subsection{Network Congestion}
+
+\subsubsection{Active Throttling}
+
+\subsubsection{Auto-Throttling}
 care to talk about the c1 auto-throttles?
 
-\subsection{Balanced Injection}
+\subsubsection{Balanced Injection}
+
+Certain applications or libraries are known to cause congestion due to their
+communication pattern.  Improved performance can be obtained by reducing each
+node's injection bandwidth to reduce overall network pressure.  The Gemini
+supports the ``balanced injection'' feature to reduce credits and outstanding
+request buffers.  Cray's MPICH libraries can automatically enable the balanced
+injection mode when performing collectives known to cause issues.
+Additionally, users can specify a desire to use balanced injection by setting
+the \textbf{APRUN\_BALANCED\_INJECTION} environment variable to a positive
+integer less than or equal to 100.
 
 \section{The TopoBW Microbenchmark}
 
