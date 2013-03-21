@@ -1,6 +1,8 @@
 #!/bin/sh
 
 pdflatex hsn.tex
+bibtex hsn
+pdflatex hsn.tex
 pdflatex hsn.tex
 
 if [ "x$(uname)" == "xDarwin" ];then
