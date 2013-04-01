@@ -124,7 +124,7 @@ uses a ``folded torus'' to minimize the maximum cable length.  For the X and Y
 dimensions, every other cabinet is directly connected together with
 ``loopback'' cables at the ends to achieve a full torus (see Figure
 \ref{fig:cabfold} for an example in the X dimension).  In the Y dimension, the
-uppermost chassis connect to the lowermost chassis.
+uppermost chassis connects to the lowermost chassis.
 
 \begin{figure}
   \centering
@@ -133,20 +133,67 @@ uppermost chassis connect to the lowermost chassis.
 \end{figure}
 
 \subsection{The Gemini Network Chip}
-ptiles, ntiles, lane, channel, link, mezzanine, chassis/cage
 
-\cite{hoti}
+Many low-level details about Gemini are available in a paper titled ``The
+Gemini System Interconnect \cite{hoti}'' that appeared in the 2010 IEEE
+Symposium on High Performance Interconnects.
 
-\begin{figure}
+The Gemini ASIC is a 48-port router than provides two network interface
+controllers.  The Gemini router is built using a 6x8 array of identical
+``tiles.''  Eight tiles referred to as ``ptiles'' are dedicated to the network
+interface controllers, and the remaining 40 ``ntiles'' are dedicated to
+external connections.  Figure \ref{fig:tiles} shows the tile assignment; being
+able to map link numbers to physical locations and dimensions can help in
+understanding performance concerns.
+
+\begin{figure}[h]
   \centering
   \includegraphics[width=3.0in]{figures/gemini_tiles.pdf}\\
   \caption{Gemini Tile Layout}\label{fig:tiles}
 \end{figure}
 
+The Gemini chip also implements hundreds of performance counters that are
+accessible through memory-mapped registers (MMRs).  The network resiliency
+software uses the MMRs control network performance and identify problems, but
+they are also accessible to users (most readily through CrayPat).
+
+\subsection{Network Links}
+
+Each Gemini chip supports two nodes, so the nodes share a topology coordinate.
+Between Gemini chips, there are many ``lanes'' that work in concert to transfer
+data.  Three lanes comprise a ``link'' that maps to a single network tile.
+Four links connect in each of the positive and negative Y dimension.  For X and
+Z, there are eight links in each direction.
+
 \subsection{Fault Tolerence}
-lane degrades, link inactives, quiesce and reroute
+
+The Gemini network was designed to be tolerant of network faults.  Both
+hardware and software support allow the system to withstand many different
+types of failures without requiring a system reboot.  When a lane fails, the
+network is able to run in auto-degrade mode.  The lane with an abnormal number
+of errors is deactivated and the Gemini balances the traffic over the other two
+lanes within the channel.  For a configurable period of time, the Gemini will
+attempt to re-initialize the failed lane to restore full bandwidth.  An example
+of a degraded lane is shown in Figure \ref{fig:lanedegrade}. 
+
+\begin{figure*}[t]
+  \begin{verbatim}
+130325 15:51:00  c0-0c1s0g0l27     c0-0c1s1g0l17       1 Mode Exchanges                       
+130325 15:51:00  c0-0c1s0g0l27     c0-0c1s1g0l17       1 RX lanemask=3                        
+130325 15:51:00  c0-0c1s0g0l27       ***ERROR*** Gemini LCB lane(s) reinit failed
+130325 15:52:00  c0-0c1s1g0l17     c0-0c1s0g0l27       1 TX lanemask=3                       
+  \end{verbatim}
+  \caption{Single Lane Degrade Seen in Netwatch File}\label{fig:lanedegrade}
+\end{figure*}
+
+If an entire link becomes unavailable, the system must take more invasive
+action to allow communication to continue.  Network traffic is quiesced and new
+routing tables (excluding the failed links) are computed and asserted to each
+Gemini chip.  Then traffic is again allowed to flow using the updated routes.
 
 \subsection{Network Congestion}
+
+
 
 \subsubsection{Active Throttling}
 
