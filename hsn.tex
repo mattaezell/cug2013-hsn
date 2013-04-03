@@ -8,6 +8,10 @@
 \hyphenation{op-tical net-works semi-conduc-tor}
 \usepackage{color}
 
+\usepackage{tikz}
+
+\usetikzlibrary{arrows}
+
 \begin{document}
 
 \title{Understanding the Impact of Interconnect Failures on System Operation}
@@ -99,6 +103,7 @@ presence of a Graphics Processing Unit (GPU).
 
 \subsection{3D Torus Topology}
 
+\label{sec:torustopo}
 In Gemini's three dimensional torus, each Gemini chip is directly connected to
 six of its nearest neighbors: positive and negative X, Y, and Z.  This maps
 extremely well to applications that do many nearest-neighbor exchanges, but the
@@ -194,7 +199,7 @@ lanemask of 3, 5, and 6 indicate that a single lane has failed.  A lanemask of
 
 If an entire link becomes unavailable, the system must take more invasive
 action to allow communication to continue.  The Cray Network Link Recovery
-Daemon (nlrd) on the System Management Workstation (SMW) detects failures and
+Daemon (\emph{nlrd}) on the System Management Workstation (SMW) detects failures and
 responds appropriately.  Network traffic is quiesced and new routing tables
 (excluding the failed links) are computed and asserted to each Gemini chip.
 Then traffic is again allowed to flow using the updated routes.
@@ -214,10 +219,10 @@ to cause congestion.
 A network daemon runs on each module controller and regularly samples the MMR
 values of the Gemini chips.  When the ratio of network stalls to forwarded
 flits (network flow control units) exceeds a configurable value for a
-configured period of time, it sends a message to nlrd on the SMW indicating
-that congestion is occurring.  nlrd cooperates with the Application Level
+configured period of time, it sends a message to \emph{nlrd} on the SMW indicating
+that congestion is occurring.  \emph{nlrd} cooperates with the Application Level
 Placement Scheduler (ALPS) to know which applications are running on each node.
-nlrd sends a message to all the Gemini chips that host the nodes with the
+\emph{nlrd} sends a message to all the Gemini chips that host the nodes with the
 offending application instructing them to throttle.
 
 \subsubsection{Auto-Throttling}
@@ -263,10 +268,106 @@ their neighbors.  The basic outline of the application follows:
 
 \subsection{Topology Awareness}
 
-pmi, rca knowing what kind of cable
-is in use
+The Cray programming environment makes application geometry as well as physical
+and topological coordinates available to userspace applications.  The
+\emph{PMI} module provides function calls to determine the number of MPMD
+applications launched, number of PEs on a given node, and a mapping of ranks to
+nodes.  The \emph{RCA} module provides functions to look up a node's physical
+characteristics (such as row, column, cage, slot, and node-number), topological
+coordinates, and retrieve the maximum value for each dimension.
+
+The application must discover its six nearest neigbhors.  Two nodes share a
+Gemini as well as a topological coordinate;  in the code, these are referred to
+as ``partners.''  This sharing will affect how much bandwidth is available to a
+given node-pair, so partners must communicate if they are participating in a
+transfer.
 
 \subsection{MPI Messaging}
+
+Timed MPI routines are used to exchange messages between nodes.  With a given
+amount of data sent and a duration for which the transfer lasted, a transfer
+speed can be calculated.  To ensure optimal bandwidth utilization, the
+asynchronous send/receive MPI calls are used and message receives are
+pre-posted.  Five iterations of transfers are run, each using 3,000 concurrent
+sends of 4MB each.  The transfer speed is averaged across the runs.
+
+The application begins running tests by cycling through each of the three
+dimensions.  First, the ``even'' nodes send in the positive direction to the
+``odd'' nodes;  then, the ``odd'' nodes send in the negative direction to the
+``even'' ones.  Next, the ``odd'' nodes send in the positive direction to the
+``even'' nodes; then, the ``even'' nodes send in the negative direction to the
+``odd'' nodes.  In the case of a dimension with an odd length, the first and
+last nodes must then send to each other.  Though this algorithm (shown in
+Figure \ref{fig:phases}) has more steps than a more straightforward approach,
+it avoids having a Gemini sending and receiving at the same time.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \def \phase {1}
+    \node[draw] at (-1,-\phase) {Phase \phase};
+    \node[draw, circle] at (1,-\phase){$0$};
+    \node[draw, circle] at (2,-\phase){$1$};
+    \node[draw, circle] at (3,-\phase){$2$};
+    \node[draw, circle] at (4,-\phase){$3$};
+    \node[draw, circle] at (5,-\phase){$4$};
+    \draw[->, >=latex] (1.3,-\phase) to (1.7,-\phase);
+    \draw[->, >=latex] (3.3,-\phase) to (3.7,-\phase);
+
+    \def \phase {2}
+    \node[draw] at (-1,-\phase) {Phase \phase};
+    \node[draw, circle] at (1,-\phase){$0$};
+    \node[draw, circle] at (2,-\phase){$1$};
+    \node[draw, circle] at (3,-\phase){$2$};
+    \node[draw, circle] at (4,-\phase){$3$};
+    \node[draw, circle] at (5,-\phase){$4$};
+    \draw[<-, >=latex] (1.3,-\phase) to (1.7,-\phase);
+    \draw[<-, >=latex] (3.3,-\phase) to (3.7,-\phase);
+
+    \def \phase {3}
+    \node[draw] at (-1,-\phase) {Phase \phase};
+    \node[draw, circle] at (1,-\phase){$0$};
+    \node[draw, circle] at (2,-\phase){$1$};
+    \node[draw, circle] at (3,-\phase){$2$};
+    \node[draw, circle] at (4,-\phase){$3$};
+    \node[draw, circle] at (5,-\phase){$4$};
+    \draw[->, >=latex] (2.3,-\phase) to (2.7,-\phase);
+    \draw[->, >=latex] (4.3,-\phase) to (4.7,-\phase);
+
+    \def \phase {4}
+    \node[draw] at (-1,-\phase) {Phase \phase};
+    \node[draw, circle] at (1,-\phase){$0$};
+    \node[draw, circle] at (2,-\phase){$1$};
+    \node[draw, circle] at (3,-\phase){$2$};
+    \node[draw, circle] at (4,-\phase){$3$};
+    \node[draw, circle] at (5,-\phase){$4$};
+    \draw[<-, >=latex] (2.3,-\phase) to (2.7,-\phase);
+    \draw[<-, >=latex] (4.3,-\phase) to (4.7,-\phase);
+
+    \def \phase {5}
+    \node[draw] at (-1,-\phase) {Phase \phase};
+    \node[draw, circle] at (1,-\phase){$0$};
+    \node[draw, circle] at (2,-\phase){$1$};
+    \node[draw, circle] at (3,-\phase){$2$};
+    \node[draw, circle] at (4,-\phase){$3$};
+    \node[draw, circle] at (5,-\phase){$4$};
+    \draw[<-, >=latex] (1.28,-4.8 ) arc (160:20:1.84 and .5);
+
+    \def \phase {6}
+    \node[draw] at (-1,-\phase) {Phase \phase};
+    \node[draw, circle] at (1,-\phase){$0$};
+    \node[draw, circle] at (2,-\phase){$1$};
+    \node[draw, circle] at (3,-\phase){$2$};
+    \node[draw, circle] at (4,-\phase){$3$};
+    \node[draw, circle] at (5,-\phase){$4$};
+    \draw[->, >=latex] (1.28,-5.8 ) arc (160:20:1.84 and .5);
+  \end{tikzpicture}
+  \caption{TopoBW Phases}\label{fig:phases}
+\end{figure}
+
+\subsection{Reporting}
+
+Using the cabling rules described in Section \ref{sec:torustopo}, the application can identify what type of cable each test was utilizing.
 
 \subsection{Limitations}
 
