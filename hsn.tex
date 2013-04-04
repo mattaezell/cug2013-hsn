@@ -367,11 +367,56 @@ it avoids having a Gemini sending and receiving at the same time.
 
 \subsection{Reporting}
 
-Using the cabling rules described in Section \ref{sec:torustopo}, the application can identify what type of cable each test was utilizing.
+For each node-pair tested the application will emit a line detailing the
+conditions present and the performance achieved.  It will list the source and
+destination node names and NID as well as the dimension and direction between
+the noddes.  An identifier will be present indicating if the ``partner'' node
+was also transmitting at the same time or if the link was availble exclusively
+to that test.  Using the cabling rules described in Section
+\ref{sec:torustopo}, the application can identify what type of cable each test
+was utilizing.  Since different cable types and dimensions have different
+performance characteristics, it is important to understand these details.
+Finally, the application will record the duration in which the transfer took
+place as well as a calculated data rate in megabytes per second.
+
+At the end of the run, the application will provide a summary of the results.
+For each dimension, it will print the minimum, maximum, and average transfer
+rates along with the source node on which that rate was achieved.
+
+\subsection{Performance Results}
+
+
+\begin{figure*}[ht]
+  \begin{verbatim}
+c19-6c2s5n3 X+CE c21-6c2s5n3 (nid11915 to nid11125):  8.8725 seconds = 6762.49 MB/sec
+c23-6c1s6n3 X+CS c24-6c1s6n3 (nid10387 to nid09581): 10.1008 seconds = 5940.12 MB/sec
+c22-5c2s6n0 Y+GS c22-5c2s6n1 (nid08722 to nid08723):  8.7885 seconds = 6827.09 MB/sec
+c23-5c2s5n1 Y+MS c23-5c2s5n2 (nid10261 to nid10186):  8.7694 seconds = 6841.98 MB/sec
+c24-1c2s1n1 Y+ME c24-1c2s1n2 (nid09891 to nid09980):  8.7713 seconds = 6840.49 MB/sec
+c22-6c2s6n3 Y+CS c22-7c0s6n0 (nid08845 to nid08818): 10.0888 seconds = 5947.17 MB/sec
+c21-6c2s5n3 Y+CE c21-7c0s5n0 (nid11125 to nid11146): 10.0885 seconds = 5947.39 MB/sec
+c19-1c1s1n1 Z+BE c19-1c1s0n1 (nid11587 to nid11585):  8.8361 seconds = 6790.31 MB/sec
+c22-3c2s4n3 Z+BS c22-3c2s5n3 (nid08585 to nid08587):  9.8418 seconds = 6096.45 MB/sec
+c23-3c2s7n3 Z+CS c23-3c0s0n3 (nid10127 to nid10081): 10.1010 seconds = 5939.99 MB/sec
+Bandwidth X min: 5923.33 on c23-2c0s2n3  max: 6792.37 on c21-1c1s0n1  avg 5942.84
+Bandwidth Y min: 4959.02 on c19-1c2s0n0  max: 6850.06 on c23-0c2s7n1  avg 6572.28
+Bandwidth Z min: 5720.67 on c21-7c0s0n3  max: 6798.56 on c19-1c0s0n1  avg 6073.87
+  \end{verbatim}
+  \caption{TopoBW Sample Output}\label{fig:topobwresults}
+\end{figure*}
+
+In early January of 2013, the TopoBW application was run on the full
+200-cabinet Titan system.
+
+%c11-5c1s5n3 X+CS c13-5c1s5n3 (nid14805 to nid14379): 15.3152 seconds = 3917.68 MB/sec
+%c13-5c1s5n2 X-CS c11-5c1s5n2 (nid14378 to nid14804): 18.3974 seconds = 3261.34 MB/sec
+
+%c11-1c0s0n2 X+CS c13-1c0s0n2 (nid14624 to nid14558): 15.3145 seconds = 3917.87 MB/sec
+%c13-1c0s0n3 X-CS c11-1c0s0n3 (nid14559 to nid14625): 18.3901 seconds = 3262.62 MB/sec
 
 \subsection{Limitations}
 
-\subsection{Results from Titan}
+The TopoBW application 
 
 \section{The Latitudes Microbenchmark}
 
