@@ -156,8 +156,8 @@ understanding performance concerns.
   \caption{Gemini Tile Layout}\label{fig:tiles}
 \end{figure}
 
-The Gemini chip also implements hundreds of performance counters that are
-accessible through memory-mapped registers (MMRs).  The network resiliency
+The Gemini chip also implements hundreds of 64-bit performance counters that
+are accessible through memory-mapped registers (MMRs).  The network resiliency
 software uses the MMRs to control network performance and identify problems,
 but they are also accessible to users (most commonly through CrayPat).
 
@@ -227,7 +227,20 @@ offending application instructing them to throttle.
 
 \subsubsection{Auto-Throttling}
 
-care to talk about the c1 auto-throttles?
+The L0 module controllers must remain in constant contact with \emph{nlrd} on
+the SMW for active throttling to work properly.  L0s must assume the worst if
+they cannot contact the SMW; after a period of communication failure they will
+``auto-throttle'' to protect the rest of the network.  Unfortunately, L0s are
+unable to log this fact to the SMW when communication problems are present;
+system administrators may be unaware of any issues.
+
+Recently a system at Oak Ridge suffered from auto-throttling due to
+communication issues.  Some users were intermittently experiencing job timeouts
+without any clear explanation.  Upon investigation, it was found that an entire
+cabinet was unreachable from the SMW.  The clip on the Ethernet cable
+connecting the cabinet to the master switch was broken and the cable had come
+loose.  After reseating the cable and ensuring communication was working
+properly, user jobs returned to their normal speed.
 
 \subsubsection{Balanced Injection}
 
@@ -437,14 +450,30 @@ they found that it was missing the \emph{L0\_CLKOUT\_3\_HI} signal on the HSN
 link between the processor and the Gemini.  Cray replaced the \emph{NeXLev}
 mezzanine connector and was able to re-test using TopoBW without failure.
 
-Sometime after the slow modules were removed, the problematic acceptance
-applications were rerun on Titan.  Application specialist reported that the S3D
-application ran ``significantly faster'' than previously, but it's not clear
-how much improvement was due to the removal of the slow modules.
+The second module had its \emph{NeXLev} connector replaced but the problem
+persisted.  Cray then replaced the \emph{XU7000} Opteron socket and was able to
+re-test using TopoBW without failure.
+
+Sometime after the slow modules were removed from Titan, the problematic
+acceptance applications were rerun on the system.  Application specialist
+reported that the S3D application ran ``significantly faster'' than previously,
+but it's not clear how much improvement was due to the removal of the slow
+modules.
 
 \subsection{Limitations}
 
-The TopoBW application 
+The TopoBW application only tests nearest-neighbor links. Single node injection
+bandwidth is less than link bandwidth; this means that large performance
+degradations will be noticed, but small deviations may not be detected.
+
+TopoBW is expected to run on the entire system, but this is not a strict
+requirement.  Running on a partial system can be useful when there is a desire
+to ``spot check'' areas of the torus.  Obviously, this depends on the scheduler
+being able to allocate topologically contiguous chunks of the machine.  Another
+complication stems from the fact that other applications running on the system
+may interfere with TopoBW.  Poorly placed applications or application
+performing lots of I/O may send many messages ``through'' TopoBW's node
+allocation.  This could result in false positives or variable performance.
 
 %\section{The Latitudes Microbenchmark}
 
@@ -461,6 +490,10 @@ The TopoBW application
 
 
 \section{Future Work}
+
+Additional work to improve the microbenchmarks is underway.  One possible
+improvement would be to exchange the MPI calls for native GNI calls to avoid
+overhead.
 
 \section{Conclusion}
 
