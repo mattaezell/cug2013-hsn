@@ -262,8 +262,8 @@ their neighbors.  The basic outline of the application follows:
 
 \begin{itemize}
 	\item Determine its topological coordinates and find its topological neighbors
-	\item For each dimension and direction, send and receive from its neighbors
-	\item Aggregate the results and calculate minimum, average, and max bandwidths
+	\item For each dimension and direction, send and receive MPI messages from its neighbors
+	\item Aggregate the results and report minimum, average, and max bandwidths
 \end{itemize}
 
 \subsection{Topology Awareness}
@@ -369,9 +369,9 @@ it avoids having a Gemini sending and receiving at the same time.
 
 For each node-pair tested the application will emit a line detailing the
 conditions present and the performance achieved.  It will list the source and
-destination node names and NID as well as the dimension and direction between
-the noddes.  An identifier will be present indicating if the ``partner'' node
-was also transmitting at the same time or if the link was availble exclusively
+destination node name and NID as well as the dimension and direction between
+the nodes.  An identifier will be present indicating if the ``partner'' node
+was also transmitting at the same time or if the link was available exclusively
 to that test.  Using the cabling rules described in Section
 \ref{sec:torustopo}, the application can identify what type of cable each test
 was utilizing.  Since different cable types and dimensions have different
@@ -381,10 +381,8 @@ place as well as a calculated data rate in megabytes per second.
 
 At the end of the run, the application will provide a summary of the results.
 For each dimension, it will print the minimum, maximum, and average transfer
-rates along with the source node on which that rate was achieved.
-
-\subsection{Performance Results}
-
+rates along with the source node on which that rate was achieved.  A subset of
+the output is shown in Figure \ref{fig:topobwresults}.
 
 \begin{figure*}[ht]
   \begin{verbatim}
@@ -394,6 +392,7 @@ c22-5c2s6n0 Y+GS c22-5c2s6n1 (nid08722 to nid08723):  8.7885 seconds = 6827.09 M
 c23-5c2s5n1 Y+MS c23-5c2s5n2 (nid10261 to nid10186):  8.7694 seconds = 6841.98 MB/sec
 c24-1c2s1n1 Y+ME c24-1c2s1n2 (nid09891 to nid09980):  8.7713 seconds = 6840.49 MB/sec
 c22-6c2s6n3 Y+CS c22-7c0s6n0 (nid08845 to nid08818): 10.0888 seconds = 5947.17 MB/sec
+c19-1c2s0n0 Y-CS c19-3c0s0n3 (nid11614 to nid11617): 12.0992 seconds = 4959.02 MB/sec
 c21-6c2s5n3 Y+CE c21-7c0s5n0 (nid11125 to nid11146): 10.0885 seconds = 5947.39 MB/sec
 c19-1c1s1n1 Z+BE c19-1c1s0n1 (nid11587 to nid11585):  8.8361 seconds = 6790.31 MB/sec
 c22-3c2s4n3 Z+BS c22-3c2s5n3 (nid08585 to nid08587):  9.8418 seconds = 6096.45 MB/sec
@@ -405,23 +404,52 @@ Bandwidth Z min: 5720.67 on c21-7c0s0n3  max: 6798.56 on c19-1c0s0n1  avg 6073.8
   \caption{TopoBW Sample Output}\label{fig:topobwresults}
 \end{figure*}
 
+\subsection{Performance Results}
+
+As expected, performance can vary based on which dimension and cable type are
+in use.  The output from Figure \ref{fig:topobwresults} shows that an X cable
+sending exclusively can achieve over 6.7 GB/sec.  This appears to be the limit
+of a single node's injection bandwidth (at least for a single dimension).  When
+a similar X link is shared among multiple send/receive partners the bandwidth
+drops to less than 6 GB/sec.  The Z dimension shows similar characteristics.
+In the Y dimension, links are fast between nodes sharing a Gemini as well as
+links between two Geminis on the same Mezzanine.  The bandwidth drops down as
+it moves to a Y cable.
+
+The TopoBW application can be used to discover slow links within a system.  The
+output shown in Figure \ref{fig:topobwresults} shows a Y- cable that is
+performing at less than 5GB/sec.  The system \emph{netwatch} file revealed that
+this link was suffering from a lane degrade.
+
+\subsection{Failures at ORNL}
+
 In early January of 2013, the TopoBW application was run on the full
-200-cabinet Titan system.
+200-cabinet Titan system.  It revealed two Geminis that had consistently poor
+results in all dimensions.  The bandwidths never exceeded 4 GB/sec, and the
+\emph{netwatch} file did not reveal any problems.
 
-%c11-5c1s5n3 X+CS c13-5c1s5n3 (nid14805 to nid14379): 15.3152 seconds = 3917.68 MB/sec
-%c13-5c1s5n2 X-CS c11-5c1s5n2 (nid14378 to nid14804): 18.3974 seconds = 3261.34 MB/sec
+To help narrow down the problem, the affected modules were moved and the system
+was rebooted.  TopoBW was again run on the system, and the performance issues
+``followed'' the blades to their new locations.  The modules were pulled from
+the system and sent to Cray for part failure analysis.  Cray put each module in
+a single-slot-tester and examined the signals on the board.  On one module,
+they found that it was missing the \emph{L0\_CLKOUT\_3\_HI} signal on the HSN
+link between the processor and the Gemini.  Cray replaced the \emph{NeXLev}
+mezzanine connector and was able to re-test using TopoBW without failure.
 
-%c11-1c0s0n2 X+CS c13-1c0s0n2 (nid14624 to nid14558): 15.3145 seconds = 3917.87 MB/sec
-%c13-1c0s0n3 X-CS c11-1c0s0n3 (nid14559 to nid14625): 18.3901 seconds = 3262.62 MB/sec
+Sometime after the slow modules were removed, the problematic acceptance
+applications were rerun on Titan.  Application specialist reported that the S3D
+application ran ``significantly faster'' than previously, but it's not clear
+how much improvement was due to the removal of the slow modules.
 
 \subsection{Limitations}
 
 The TopoBW application 
 
-\section{The Latitudes Microbenchmark}
+%\section{The Latitudes Microbenchmark}
 
-\subsection{MMR Access}
-ioctl and gpcd
+%\subsection{MMR Access}
+%ioctl and gpcd
 
 
 \section{Real World Applications}
@@ -437,19 +465,20 @@ ioctl and gpcd
 \section{Conclusion}
 
 % use section* for acknowledgement
-%\section*{Acknowledgment}
+\section*{Acknowledgment} The author would like to thank several individuals
+for providing information and assistance in preparing this paper.  John
+Levesque from Cray provided the author with the S3D code and run scripts and
+helped resolve some build issues. Bob Alverson from Cray provided some useful
+information about Gemini internals.  Don Maxwell from Oak Ridge National
+Laboratory reviewed this paper and provided helpful input.  This research used
+resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge
+National Laboratory, which is supported by the Office of Science of the U.S.
+Department of Energy under Contract No. DE-AC05-00OR22725. 
 
-%\textcolor{red}{
-%	The authors would like to thank...
-%	more thanks here
-%}
-
-% trigger a \newpage just before the given reference
-% number - used to balance the columns on the last page
-% adjust value as needed - may need to be readjusted if
-% the document is modified later
-%\IEEEtriggeratref{8}
-% The "triggered" command can be changed if desired:
+% trigger a \newpage just before the given reference number - used to balance
+% the columns on the last page adjust value as needed - may need to be
+% readjusted if the document is modified later
+%\IEEEtriggeratref{8} The "triggered" command can be changed if desired:
 %\IEEEtriggercmd{\enlargethispage{-5in}}
 
 % references section
@@ -465,19 +494,6 @@ ioctl and gpcd
 
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,hsn}
-
-%
-% <OR> manually copy in the resultant .bbl file
-% set second argument of \begin to the number of references
-% (used to reserve space for the reference number labels box)
-%\begin{thebibliography}{1}
-
-%\bibitem{Walsh2009}
-%John Walsh, Troy Baer, Victor Hazlewood, Junseong Heo, Rick Mohr.
-%\newblock{Large Lustre File System Experiences at NICS}.
-%\newblock{Cray User Group 2009}.
-%\end{thebibliography}
-
 
 % that's all folks
 \end{document}
