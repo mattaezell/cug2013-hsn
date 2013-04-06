@@ -261,6 +261,8 @@ properly, user jobs returned to their normal speed.
 
 \subsubsection{Balanced Injection}
 
+\label{sec:bi}
+
 Certain applications or libraries are known to cause congestion due to their
 communication pattern.  Improved performance can be obtained by reducing each
 node's injection bandwidth to reduce overall network pressure.  The Gemini
@@ -515,6 +517,28 @@ of the Gemini network is essential to the performance observed in S3D.  The
 author used S3D as a mechanism to help understand how interconnect problems can
 affect application performance.
 
+\subsubsection{Balanced Injection}
+
+The balanced injection feature (see Section \ref{sec:bi}) can be used to
+simulate global performance degradation.  S3D was run using 96 nodes on a small
+XK7 system using various values for balanced injection.  The results are shown
+in Figure \ref{fig:s3dbi}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=3.4in]{figures/s3d_bisweep.pdf}\\
+  \caption{S3D Balanced Injection}\label{fig:s3dbi}
+\end{figure}
+
+The shortest walltime is achieved at a balanced injection value of
+approximately 70.  This shows that allowing nodes to inject packets into the
+network at full speed can cause congestion that reduces performance.
+Conversely, limiting injection bandwidth too much will cause performance
+degradation.
+
+Since this test was run on a small node count, all communication is relatively
+local.  The author expects the results would be more pronounced on larger runs.
+
 \section{Future Work}
 
 Additional work to improve the microbenchmarks is underway.  One possible
@@ -524,7 +548,20 @@ low-level settings associated with each message.  Further research into how the
 MMRs are implemented may allow additional information to be extracted from the
 Gemini chips.
 
+Additional combinations of applications and failure scenarios need to be
+evaluated to better understand how these failures impact users.  Additional
+research is required to develop procedures to manually degrade or disable parts
+in ways similar to those observable in production.
+
 \section{Conclusion}
+
+The Gemini interconnect is highly robust and scalable, but it is not immune to
+failures and performance problems.  Oak Ridge National Laboratories has
+developed an application that can stress the network and find previously
+undiscovered performance problems.  It has already identified two faulty
+connectors on Titan that caused real performance issues on the system.
+Understanding the impacts of network faults on applications helps to prioritize
+when issues get fixed, leading to a better overall system.
 
 % use section* for acknowledgement
 \section*{Acknowledgment} The author would like to thank several individuals
