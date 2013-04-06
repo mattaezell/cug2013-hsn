@@ -170,6 +170,23 @@ single network tile.  Four links connect in each of the positive and negative
 directions in the Y dimension.  For X and Z, there are eight links in each
 direction.
 
+\subsection{Routing and Faults}
+
+The Gemini network uses dimension ordered routing.  In a faultless network,
+traffic will first travel along the X dimension until it reaches the
+destination node's X coordinate.  The packet will then travel in the Y
+dimension to the destination node's Y coordinate.  Finally, it will move in the
+Z dimension until it reaches the final destination. 
+
+When faults are present in the network, the routing algorithm must send traffic
+in non-optimal ways to ensure that all nodes can communicate.  This will likely
+cause some network links to be underutilized while others become
+oversubscribed.  Certain failure patterns, such as multiple failures in the
+same ``loop'' of the Z dimention, will cause an unrouteable situation.  Recent
+improvents to the routing software enabled dimension order retry.  If the
+standard X-Y-Z ordering does not work, it will try alternate combinations until
+it finds a routeable configuration.
+
 \subsection{Fault Tolerence}
 
 The Gemini network was designed to be tolerant of network faults.  Both
@@ -481,19 +498,31 @@ allocation.  This could result in false positives or variable performance.
 %ioctl and gpcd
 
 
-\section{Real World Applications}
+\section{Application Performance Evaluation}
 
 \subsection{S3D: Turbulent Combustion}
 
-\subsubsection{S3D Introduction}
+Approximately 83\% of U.S. energy comes from the combustion of fossil fuels.
+The S3D application simulates turbulent combustion and is being used to enable
+the next generation diesels and biofuels to burn more efficiently.  S3D is an
+important application for the Oak Ridge National Laboratory Center for
+Accelerated Application Readiness (CAAR), and Titan's acceptance plan has
+specific performance requirements for S3D. 
 
-
+Refactoring the S3D code and porting it to the GPU has somewhat moved the major
+bottleneck from computation to communication.  Thus, the health and performance
+of the Gemini network is essential to the performance observed in S3D.  The
+author used S3D as a mechanism to help understand how interconnect problems can
+affect application performance.
 
 \section{Future Work}
 
 Additional work to improve the microbenchmarks is underway.  One possible
 improvement would be to exchange the MPI calls for native GNI calls to avoid
-overhead.
+overhead.  Native GNI calls also enable more fine-grained control over the
+low-level settings associated with each message.  Further research into how the
+MMRs are implemented may allow additional information to be extracted from the
+Gemini chips.
 
 \section{Conclusion}
 
