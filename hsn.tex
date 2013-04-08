@@ -161,6 +161,17 @@ are accessible through memory-mapped registers (MMRs).  The network resiliency
 software uses the MMRs to control network performance and identify problems,
 but they are also accessible to users (most commonly through CrayPat).
 
+% This figure belongs further down, but we are defining it here to force placement
+\begin{figure*}[ht]
+  \begin{verbatim}
+130325 15:51:00  c0-0c1s0g0l27     c0-0c1s1g0l17       1 Mode Exchanges                       
+130325 15:51:00  c0-0c1s0g0l27     c0-0c1s1g0l17       1 RX lanemask=3                        
+130325 15:51:00  c0-0c1s0g0l27       ***ERROR*** Gemini LCB lane(s) reinit failed
+130325 15:52:00  c0-0c1s1g0l17     c0-0c1s0g0l27       1 TX lanemask=3                       
+  \end{verbatim}
+  \caption{Single Lane Degrade Seen in Netwatch File}\label{fig:lanedegrade}
+\end{figure*}
+
 \subsection{Network Links}
 
 Each Gemini chip supports two nodes, and those nodes share a topology
@@ -199,15 +210,8 @@ time, the Gemini will attempt to re-initialize the failed lane to restore full
 bandwidth.  An example of a degraded lane is shown in Figure
 \ref{fig:lanedegrade}. 
 
-\begin{figure*}[ht]
-  \begin{verbatim}
-130325 15:51:00  c0-0c1s0g0l27     c0-0c1s1g0l17       1 Mode Exchanges                       
-130325 15:51:00  c0-0c1s0g0l27     c0-0c1s1g0l17       1 RX lanemask=3                        
-130325 15:51:00  c0-0c1s0g0l27       ***ERROR*** Gemini LCB lane(s) reinit failed
-130325 15:52:00  c0-0c1s1g0l17     c0-0c1s0g0l27       1 TX lanemask=3                       
-  \end{verbatim}
-  \caption{Single Lane Degrade Seen in Netwatch File}\label{fig:lanedegrade}
-\end{figure*}
+% This is where the lane degrade figure *should* go, but we are moving it up so
+% it will show up at the top of a page
 
 The lanemask value is a three-bit number corresponding to the three lanes in a
 link.  A lanemask of 7 indicates that all lanes are working properly.  A
@@ -397,25 +401,7 @@ it avoids having a Gemini sending and receiving at the same time.
   \caption{TopoBW Phases}\label{fig:phases}
 \end{figure}
 
-\subsection{Reporting}
-
-For each node-pair tested the application will emit a line detailing the
-conditions present and the performance achieved.  It will list the source and
-destination node name and NID as well as the dimension and direction between
-the nodes.  An identifier will be present indicating if the ``partner'' node
-was also transmitting at the same time or if the link was available exclusively
-to that test.  Using the cabling rules described in Section
-\ref{sec:torustopo}, the application can identify what type of cable each test
-was utilizing.  Since different cable types and dimensions have different
-performance characteristics, it is important to understand these details.
-Finally, the application will record the duration in which the transfer took
-place as well as a calculated data rate in megabytes per second.
-
-At the end of the run, the application will provide a summary of the results.
-For each dimension, it will print the minimum, maximum, and average transfer
-rates along with the source node on which that rate was achieved.  A subset of
-the output is shown in Figure \ref{fig:topobwresults}.
-
+% This belongs below, but we are definig it here to force placement
 \begin{figure*}[ht]
   \begin{verbatim}
 c19-6c2s5n3 X+CE c21-6c2s5n3 (nid11915 to nid11125):  8.8725 seconds = 6762.49 MB/sec
@@ -435,6 +421,27 @@ Bandwidth Z min: 5720.67 on c21-7c0s0n3  max: 6798.56 on c19-1c0s0n1  avg 6073.8
   \end{verbatim}
   \caption{TopoBW Sample Output}\label{fig:topobwresults}
 \end{figure*}
+
+\subsection{Reporting}
+
+For each node-pair tested the application will emit a line detailing the
+conditions present and the performance achieved.  It will list the source and
+destination node name and NID as well as the dimension and direction between
+the nodes.  An identifier will be present indicating if the ``partner'' node
+was also transmitting at the same time or if the link was available exclusively
+to that test.  Using the cabling rules described in Section
+\ref{sec:torustopo}, the application can identify what type of cable each test
+was utilizing.  Since different cable types and dimensions have different
+performance characteristics, it is important to understand these details.
+Finally, the application will record the duration in which the transfer took
+place as well as a calculated data rate in megabytes per second.
+
+At the end of the run, the application will provide a summary of the results.
+For each dimension, it will print the minimum, maximum, and average transfer
+rates along with the source node on which that rate was achieved.  A subset of
+the output is shown in Figure \ref{fig:topobwresults}.
+
+% The reporting figure goes here, but we moved it up to force placement
 
 \subsection{Performance Results}
 
@@ -548,6 +555,11 @@ low-level settings associated with each message.  Further research into how the
 MMRs are implemented may allow additional information to be extracted from the
 Gemini chips.
 
+Currently, the TopoBW application only works on Gemini-based systems.  Future
+work will extend the microbenchmark to work on Cray's Aries interconnect.  A
+desire also exists to generalize the benchmark so that it can run on commodity
+clusters with fat-tree Infiniband interconnects.
+
 Additional combinations of applications and failure scenarios need to be
 evaluated to better understand how these failures impact users.  Additional
 research is required to develop procedures to manually degrade or disable parts
@@ -593,6 +605,8 @@ Department of Energy under Contract No. DE-AC05-00OR22725.
 
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,hsn}
+
+\enlargethispage{-2in}
 
 % that's all folks
 \end{document}
