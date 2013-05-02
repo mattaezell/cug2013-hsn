@@ -26,20 +26,23 @@ ezellma@ornl.gov}
 \maketitle
 
 \begin{abstract}
+
 Hardware failures are inevitable on large high performance computing systems.
 Faults or performance degradations in the high-speed network can reduce the
-entire system’s performance. Since the introduction of the Gemini interconnect,
-Cray systems have become resilient to many networking faults. These new network
-reliability and resiliency features have enabled higher uptimes on Cray systems
-by allowing them to continue running with reduced network performance. Oak
-Ridge National Laboratory has developed a set of user-level diagnostics that
-stresses the high-speed network and searches for components that are not
-performing as expected. Nearest-neighbor bandwidth tests check every network
-chip and network link in the system. Additionally, performance counters stored
-on the network ASIC’s memory mapped registers (MMRs) are used to get a more
-full picture of the state of the network. Applications have also been
-characterized under various suboptimal network conditions to better understand
-what impact network problems have on user codes.
+entire system's performance. Since the introduction of the Gemini interconnect,
+Cray systems have become resilient to many networking faults that were fatal in
+their previous generation systems. These new network reliability and resiliency
+features have enabled higher uptimes on Cray systems by allowing them to
+continue running with reduced network performance. Oak Ridge National
+Laboratory has developed a set of user-level diagnostics that stresses the
+high-speed network and searches for components that are not performing as
+expected. Nearest-neighbor bandwidth tests check every network chip and network
+link in the system. Additionally, performance counters stored on the network
+ASIC's memory mapped registers (MMRs) are used to better understand the state
+of the network. Applications have also been characterized under various
+suboptimal network conditions to better understand what impact network problems
+have on user codes.
+
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -52,24 +55,24 @@ Hardware failures are inevitable on large high performance computing systems.
 Problems on a specific compute node can be fatal to an application running on
 that node, but these types of faults typically have little to no impact on
 other jobs or system services. Faults or performance degradations in the
-high-speed network, however, have the potential to reduce the entire system’s
+high-speed network, however, have the potential to reduce the entire system's
 performance.
 
 Since the introduction of the Gemini System Interconnect, Cray high performance
 computing systems have become resilient to many types of high-speed networking
-faults. Hardware and software monitoring allow the network to transparently
-mask out bad lanes within a link, and to reroute around completely failed links
-by temporarily pausing network traffic while installing the new routes. These
-new network reliability and resiliency features have enabled higher uptimes on
-Cray systems by allowing them to continue running with reduced network
-performance.
+faults that were fatal in their previous generation systems. Hardware and
+software monitoring allow the network to transparently mask out bad lanes
+within a link, and to reroute around completely failed links by temporarily
+pausing network traffic while installing the new routes. These new network
+reliability and resiliency features have enabled higher uptimes on Cray systems
+by allowing them to continue running with reduced network performance.
 
 Oak Ridge National Laboratory has developed a set of user-level diagnostics
 that stresses the high-speed network and searches for components that are not
 performing as expected. Nearest-neighbor bandwidth tests check every network
 chip and network link in the system. Unidirectional single-threaded bandwidths
 approaching 7 GB/sec have been achieved across healthy links on a quiet system.
-Additionally, performance counters stored on the network ASIC’s memory mapped
+Additionally, performance counters stored on the network ASIC's memory mapped
 registers (MMRs) are used to get a more full picture of the state of the
 network. Applications have also been characterized under various suboptimal
 network conditions to better understand what impact network problems have on
@@ -88,12 +91,14 @@ are arranged ``left to right'' in rows, and larger systems will have multiple
 rows.  Cabinets in the same ``left to right'' position in different rows form
 columns.  Each cabinet consists of an L1 cabinet controller, a blower fan,
 power conversion electronics, and three chassis.  A chassis (also known as a
-cage) holds eight modules (also known as blades).  Modules contain a network
-mezzanine that houses two Gemini network chips; each Gemini is shared between
-two nodes.  The module printed circuit board layouts are different between
-service and compute modules because the service nodes support PCI Express
-interface cards.  Furthermore, XE and XK blades differ due to the absence or
-presence of a Graphics Processing Unit (GPU).
+cage) holds eight modules (also known as blades).  Figure \ref{fig:cab} shows a
+cabinet's layout.
+
+Modules contain a network mezzanine that houses two Gemini network chips; each
+Gemini is shared between two nodes.  The module printed circuit board layouts
+are different between service and compute modules because the service nodes
+support PCI Express interface cards.  Furthermore, XE and XK blades differ due
+to the absence or presence of a Graphics Processing Unit (GPU).
 
 \begin{figure}
   \centering
@@ -139,16 +144,16 @@ uppermost chassis connects to the lowermost chassis.
 \subsection{The Gemini Network Chip}
 
 Many low-level details about Gemini are available in a paper titled ``The
-Gemini System Interconnect \cite{hoti}'' that appeared in the 2010 IEEE
-Symposium on High Performance Interconnects.
+Gemini System Interconnect'' that appeared in the 2010 IEEE Symposium on High
+Performance Interconnects \cite{hoti}.
 
 The Gemini ASIC is a 48-port router than provides two network interface
 controllers.  The Gemini router is built using a 6x8 array of identical
 ``tiles.''  Eight tiles referred to as ``ptiles'' are dedicated to the network
 interface controllers, and the remaining 40 ``ntiles'' are dedicated to
 external connections.  Figure \ref{fig:tiles} shows the tile assignment; being
-able to map link numbers to physical locations and dimensions can help in
-understanding performance concerns.
+able to map link numbers to physical locations and dimensions can help decode
+log messages and assist in understanding performance concerns.
 
 \begin{figure}[h]
   \centering
@@ -159,7 +164,7 @@ understanding performance concerns.
 The Gemini chip also implements hundreds of 64-bit performance counters that
 are accessible through memory-mapped registers (MMRs).  The network resiliency
 software uses the MMRs to control network performance and identify problems,
-but they are also accessible to users (most commonly through CrayPat).
+but they are also accessible to users (through CrayPat or PAPI).
 
 % This figure belongs further down, but we are defining it here to force placement
 \begin{figure*}[ht]
@@ -279,7 +284,7 @@ integer less than or equal to 100.
 
 \section{The TopoBW Microbenchmark}
 
-Work on better understanding the state of the high speed network began during
+A desire to better understand the state of the high speed network arose during
 acceptance testing on Titan.  Several applications were exhibiting extremely
 variable behavior, and it was observed that application placement was an
 important factor.  Performance improved significantly by packing applications
@@ -299,7 +304,7 @@ their neighbors.  The basic outline of the application follows:
 \begin{itemize}
 	\item Determine its topological coordinates and find its topological neighbors
 	\item For each dimension and direction, send and receive MPI messages from its neighbors
-	\item Aggregate the results and report minimum, average, and max bandwidths
+	\item Aggregate the results and report minimum, average, and maximum bandwidths
 \end{itemize}
 
 \subsection{Topology Awareness}
@@ -464,7 +469,7 @@ this link was suffering from a lane degrade.
 
 In early January of 2013, the TopoBW application was run on the full
 200-cabinet Titan system.  It revealed two Geminis that had consistently poor
-results in all dimensions.  The bandwidths never exceeded 4 GB/sec, and the
+results in all dimensions.  The bandwidths never exceeded 4 GB/sec, but the
 \emph{netwatch} file did not reveal any problems.
 
 To help narrow down the problem, the affected modules were moved and the system
